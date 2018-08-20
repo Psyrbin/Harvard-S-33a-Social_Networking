@@ -1,0 +1,16 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Search
+{% endblock %}
+
+{% block body %}
+    <div class="col-2"></div>
+    <div class="col-lg-6 col-sm-12">
+        <h1>Search</h1>
+        <form action="{{ url_for('search_results') }}" method="post">
+            <input type="text" name="search" placeholder="Search users">
+            <input type="Submit" value="Search">
+        </form>
+    </div>
+{% endblock %}

@@ -1,0 +1,97 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Conversation with {{ user }}
+{% endblock %}
+
+{% block script %}
+<script>
+    let socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
+    let you = '{{ you }}'
+
+    function create_message(sender, text, you_flag)
+    {
+        message = document.createElement('div');
+        message.setAttribute('class', 'comment');
+        if (you_flag)
+            message.setAttribute('align', 'right');
+        else
+            message.setAttribute('align', 'left');
+
+        div = document.createElement('div');
+        div.setAttribute('class', 'color');
+        if (you_flag)
+            div.style.background = '#F0F0F0';
+
+        meta = document.createElement('p');
+        meta.setAttribute('class', 'meta');
+        meta.innerHTML = sender;
+
+        msg_body = document.createElement('p');
+        msg_body.innerHTML = text;
+
+        div.appendChild(meta);
+        div.appendChild(msg_body);
+        message.appendChild(div);
+            document.querySelector('#messages').appendChild(message);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        socket.emit('messages read', {'to': you, 'from': '{{ user }}' })
+
+        document.querySelector('#form').onsubmit = () => {
+            let text = document.querySelector('#message').value;
+            create_message(you, text, true)
+            socket.emit('new message', {'from': you, 'to': '{{ user }}', 'text': text})
+            document.querySelector('#message').value = '';
+            return false;
+        }
+
+        socket.on('new message', data => {
+            if (data['to'] == you) {
+                create_message(data['from'], data['text'], false);
+                socket.emit('messages read', {'to': you, 'from': '{{ user }}' });
+            }
+        })
+
+        socket.on('messages read', data => {
+            if (data['from'] == you && data['to'] == '{{ user }}')
+                document.querySelectorAll('.color').forEach(div => div.style.background = '#FFFFFF');
+        })
+    })
+</script>
+{% endblock %}
+
+
+{% block body %}
+    <div class="col-2"></div>
+    <div class="col-lg-6 col-sm-12">
+        <div id="messages">
+            {% for message in messages %}
+                {% if message['sender'] == you %}
+                    <div class="comment" align="right">
+                {% else %}
+                    <div class="comment" align="left">
+                {% endif %}
+
+                {% if message['read'] == 0 %}
+                        <div style="background-color: #F0F0F0" class="color">
+                    {% else %}
+                        <div style="background-color: white" class="color">
+                    {% endif %}
+                        <p class="meta"> {{ message['sender'] }}</p>
+                        <p> {{ message['data'] }} </p>
+                    </div>
+                </div>
+
+            {% else %}
+                <h3>No messages yet</h3>
+            {% endfor %}
+        </div>
+        <br>
+        <form id="form">
+            <textarea class="form-control" rows="2" name="data" placeholder="Your message" id="message"></textarea>
+            <input type="submit" value="Send" align="right" style="float: right;">
+        </form>
+    </div>
+{% endblock %}

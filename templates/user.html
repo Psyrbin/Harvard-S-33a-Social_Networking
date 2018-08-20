@@ -1,0 +1,110 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    User
+{% endblock %}
+
+{% block body %}
+
+<div class="col-lg-4 col-sm-12">
+    <h1>{{ user }}</h1>
+    {% if not postable %}
+        <a href="{{ url_for('conversation', user=user) }}"><button type="button" class="btn btn-warning">Send message</button></a>
+        <br>
+        <br>
+    {% endif %}
+
+    <!-- Personal information -->
+    {% if edit %}
+    <!-- Edit personal information -->
+        <form action='{{ url_for('submit_personal') }}' method='post'>
+            {% if personal == None %}
+                <div class="form-group">
+                    <textarea class="form-control" rows="3" name="data"></textarea>
+                </div>
+            {% else %}
+                <div class="form-group">
+                    <textarea class="form-control" rows="3" name="data">{{ personal }}</textarea>
+                </div>
+            {% endif %}
+            <input type="submit" value="Save">
+        </form>
+    {% else %}
+    <!-- Show personal information -->
+        {% if personal == None or personal == '' %}
+            <h3>User did not provide any personal information</h3>
+        {% else %}
+            <h3>Personal information</h3>
+            <div class="border" style="word-wrap: break-word;">
+                {% for line in personal.split('\n') %}
+                    {{ line }} <br>
+                {%endfor%}
+            </div>
+        {% endif %}
+
+        {% if postable %}
+        <br>
+            <a href="{{ url_for('edit_personal') }}"><button type="button" class="btn btn-primary">Edit personal information</button></a>
+        {% endif %}
+    {% endif %}
+</div>
+
+
+<!-- Posts -->
+<div class="col-lg-6 col-sm-12">
+    <h3>Posts</h3>
+    {% if postable %}
+        <form action="{{ url_for('new_post') }}" method="post">
+            <div class="form-group">
+                <textarea class="form-control" rows="3" name="data" placeholder="Write new post here"></textarea>
+            </div>
+            <input type="submit" value="Post">
+        </form>
+        <hr style="color:black; border-width: 10px">
+    {% endif %}
+
+    <br>
+    {% if posts == None %}
+        <h4>There are no posts yet</h4>
+    {% else %}
+        {% for post in posts %}
+        {% if post['data'] != None and post['data'] != '' %}
+            <div class="border ">
+                {% for line in post['data'].split('\n') %}
+                    {{ line }}<br>
+                {% endfor %}
+            </div>
+
+            <!-- delete button -->
+            {% if postable %}
+                <form action="{{ url_for('delete_post') }}" method="post">
+                    <input type="hidden" name="post" value="{{ post['id'] }}">
+                    <input type="submit" value="Delete">
+                </form>
+            {% endif %}
+
+            <!-- comments -->
+
+            <div class="container">
+                {% for comment in comments[post['id']] %}
+                    <div class="comment">
+                        <p class="meta"> {{ comment['user'] }} says: </p>
+                        <p> {{ comment['data'] }} </p>
+                    </div>
+                {% else %}
+                    No comments to this post
+                {% endfor %}
+                <form action="{{ url_for('user', user=user) }}" method="post">
+                    <div class="form-group">
+                        <textarea class="form-control" rows="2" name="data" placeholder="Your comment"></textarea>
+                        <input type="hidden" name="post" value="{{ post['id'] }}">
+                    </div>
+                    <input type="submit" value="Comment">
+                </form>
+            </div>
+            <br>
+        {% endif %}
+        {% endfor %}
+    {% endif %}
+</div>
+{% endblock %}

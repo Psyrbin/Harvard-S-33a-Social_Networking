@@ -1,0 +1,53 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Your messages
+{% endblock %}
+
+{% block script %}
+<script>
+    let socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
+
+    document.addEventListener('DOMContentLoaded', () => {
+        socket.on('messages read', data => {
+            if (data['from'] == '{{ you }}' || data['to'] == '{{ you }}')
+                location.reload();
+        })
+        
+        socket.on('new message', data => {
+            if (data['from'] == '{{ you }}' || data['to'] == '{{ you }}')
+                location.reload();
+        })
+    })
+</script>
+{% endblock %}
+
+{% block body %}
+    <div class="col-2"></div>
+    <div class="col-lg-6 col-sm-12">
+        {% for user in users %}
+            <a href="{{ url_for('conversation', user=user) }}" style="text-decoration: none; color: black">
+                {{ user }}
+            {% if last_message[user]['sender'] == you %}
+                <div class="comment" align="right">
+            {% else %}
+                <div class="comment" align="left">
+            {% endif %}
+
+                {% if last_message[user]['read'] == 0 %}
+                    <div style="background-color: #F0F0F0">
+                {% else %}
+                    <div style="background-color: white">
+                {% endif %}
+                    <p class="meta"> {{ last_message[user]['sender'] }}</p>
+                    <p> {{ last_message[user]['data'] }} </p>
+                </div>
+            </div>
+            </a>
+            <hr>
+
+        {% else %}
+            No messages
+        {% endfor %}
+    </div>
+{% endblock %}

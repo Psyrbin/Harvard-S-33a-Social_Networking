@@ -1,0 +1,17 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Search results
+{% endblock %}
+
+{% block body %}
+    <div class="col-2"></div>
+    <div class="col-lg-6 col-sm-12">
+        <h1>Search results</h1>
+        {% for user in results %}
+            <a href="{{ url_for('user', user=user['name']) }}" style="font-size: 40px">{{ user['name'] }}</a><br>
+        {% else %}
+            <h2>No users found</h2>
+        {% endfor %}
+    </div>
+{% endblock %}
